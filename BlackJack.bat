@@ -2,6 +2,7 @@
 setlocal enabledelayedexpansion
 title Blackjack
 color B
+
 :boot
 cls
 echo Loading...
@@ -16,9 +17,6 @@ echo.
 pause
 goto variables
 
-		rem This is the autosave feature. Assuming the proper directory is found, it will automatically save your
-		rem stats to external files whenever you return to the main menu. It is disabled by default.
-
 :autosave
 if not exist autosave.cfg goto menu2
 if %autosave% == 0 goto menu
@@ -29,27 +27,28 @@ ping localhost -n 2 > nul
 for %%a in (level experience cash wins losses played earnedcash lostcash mostcash bankrupt) do echo !%%a! > %%a.stat
 for %%a in (autosave) do echo !%%a! > %%a.cfg
 goto menu2
-	:autosaveconfig
+
+:autosaveconfig
 echo.
 if %directorymade% == 0 echo No directory found, cannot enable autosave.
 if %directorymade% == 0 pause
 if %directorymade% == 0 goto menu
 if %autosave% == 0 goto autoenable
 goto autodisable
-	:autoenable
+
+:autoenable
 set /a autosave = 1
 echo Autosave Enabled
 pause
 for %%a in (autosave) do echo !%%a! > %%a.cfg
 goto menu2
-	:autodisable
+
+:autodisable
 set /a autosave = 0
 echo Autosave Disabled
 pause
 for %%a in (autosave) do echo !%%a! > %%a.cfg
 goto menu2
-
-		REM Below are variables that are designed to change / reset during normal play.
 
 :variables
 set vsn=4.0
@@ -75,8 +74,6 @@ set op4=stat
 set op4a=stats
 set op5=cheat
 
-		REM Stats are the variables which are saved and loaded externally.
-
 :stats
 set /a level = 0
 set /a experience = 0
@@ -92,10 +89,6 @@ set /a bankrupt = 0
 :settings
 set /a autosave = 0
 
-		REM Save feature - Checks to see if the "datafiles" directory exists. If it does, it will save player stats externally. If not,
-		REM it will ask if you'd like to create the directory. You can still play normally if you choose not to create the folder, however
-		REM you will not be able to save or load stats.
-
 :savecheck
 cls
 if exist marker.phf cd..
@@ -108,7 +101,8 @@ set /p loadsave=
 if %loadsave% == y goto createdir
 if %loadsave% == n goto dontsave
 goto savecheck
-	:createdir
+
+:createdir
 mkdir datafiles
 cd datafiles
 mkdir stats
@@ -120,7 +114,8 @@ cd..
 cd..
 set /a directorymade = 1
 goto menu
-	:dontsave
+
+:dontsave
 cls
 echo Not creating a save directory will prevent you from saving your games and stats, including all cash won.
 echo.
@@ -131,7 +126,8 @@ set /p loadsave=
 if %loadsave% == 1 goto dontsave2
 if %loadsave% == 2 goto createdir
 goto dontsave
-	:dontsave2
+
+:dontsave2
 set /a directorymade = 0
 goto menu
 
@@ -149,13 +145,15 @@ if exist %%a.stat (
 	)
 )
 goto savegamecont
-	:confirmsave
+
+:confirmsave
 echo Save files found. Confirm overwrite? (Y/N)
 set /p over=
 if %over% == y goto savegamecont
 if %over% == n goto menu
 goto confirmsave
-	:savegamecont
+
+:savegamecont
 cls
 echo Saving game to datafiles...
 ping localhost -n 3 > nul
@@ -166,9 +164,6 @@ echo Save complete
 echo.
 pause
 goto menu
-
-		REM Load feature - Checks if "datafiles" directory exists as well as any stat files that may have been saved. If they do, it will load player stats
-		REM into the game.
 
 :loadgame
 cls
@@ -189,13 +184,15 @@ if exist %%a.stat (
 	goto menu
 	)
 )
-	:loadgamecont
+
+:loadgamecont
 echo.
 if %loaderror% == 1 echo Missing files, cannot load game. Try saving.
 if %loaderror% == 1 echo.
 if %loaderror% == 1 pause
 if %loaderror% == 1 goto menu
-	:loadgamefinal
+
+:loadgamefinal
 set /p level=<level.stat
 set /p experience=<experience.stat
 set /p cash=<cash.stat
@@ -214,8 +211,6 @@ goto menu
 :changedir
 if not exist datafiles goto savecheck
 cd datafiles
-
-		REM Main menu options below.
 
 :menu
 if exist autosave.cfg set /p autosave=<autosave.cfg
@@ -304,851 +299,347 @@ echo What cheat do you want to activate?
 echo 1) Add or remove money
 echo 2) Unlock all casino leagues
 echo 3) -Back-
-set /p cheatch=
-if %cheatch% == 1 goto cash2
-if %cheatch% == 2 goto cash3
-if %cheatch% == 3 goto menu2
-goto cash
-	:cash2
+set /p cheattype=
+if %cheattype% == 1 goto cashmod
+if %cheattype% == 2 goto levels
+if %cheattype% == 3 goto menu
+
+:levels
 cls
-echo Your current cash is $%cash%, would you like to change it? (Y/N)
-set /p change=
-if %change% == y goto change
-if %change% == n goto menu
-if %change% == %op1% goto menu
-goto cash
-		:change
-cls
-echo Enter your desired cash value:
-set /p cashchange=
-if %cashchange% == %op1% goto menu
-if %cashchange% LSS 1 echo Unknown or invalid input.
-if %cashchange% GTR 0 goto changeconf
-pause
-goto change
-		:changeconf
-cls
-echo Confirm change cash to $%cashchange%? (Y/N)
-set /p conf=
-if %conf% == y set /a cash = %cashchange%
-if %conf% == y goto menu
-if %conf% == n goto change
-goto changeconf
-	:cash3
-set /a level = 999
 echo.
-echo All leagues unlocked.
-echo.
+echo WARNING! Unlocking all leagues cannot be undone! Confirm? (Y/N)
+set /p levelhack=
+if %levelhack% == y goto levelhack
+if %levelhack% == n goto menu
+
+:levelhack
+cls
+set /a level = 10
+echo All leagues unlocked. Do not save your game if you wish to keep these.
 pause
 goto menu2
 
-:how
+:cashmod
 cls
-echo Draw a card every round to increase your score without going over 21.
+echo.
+echo How much cash do you want? (use "-" to remove money)
+set /p money=
+set /a cash = %cash% + %money%
+echo.
+echo Cash modified.
+pause
+goto menu2
+
+:version
+cls
+echo.
+echo Version %vsn%
 pause
 goto menu
 
 :command
 cls
-echo 'menu' - Returns to the game menu.
-echo 'reset' - Resets the game and all variables. Only used from menu.
-echo 'version' - Shows the version of Blackjack currently running.
-echo 'cheat' - Allows you to change your total cash, or unlock all casino leagues.
-echo.
-pause
+echo 1) Set Debug Options
+echo 2) Reset
+echo 3) Change version
+echo 4) -Back-
+set /p debugcmd=
+if %debugcmd% == 1 goto debug
+if %debugcmd% == 2 goto boot
+if %debugcmd% == 3 goto vchange
+if %debugcmd% == 4 goto menu
+
+:vchange
+cls
+echo Current version is %vsn%. What do you want to change it to?
+set /p vsn=
 goto menu
 
-:version
+:debug
 cls
-echo You are currently running v%vsn% of Blackjack.
-pause
+echo Select the debug option to set:
+echo 1) Reset the menu command
+echo 2) Reset the version command
+echo 3) Reset the cheat command
+echo 4) Set custom menu command
+echo 5) Set custom version command
+echo 6) Set custom cheat command
+echo 7) -Back-
+set /p setcommand=
+if %setcommand% == 1 set op1=menu
+if %setcommand% == 1 goto menu
+if %setcommand% == 2 set op3=version
+if %setcommand% == 2 goto menu
+if %setcommand% == 3 set op5=cheat
+if %setcommand% == 3 goto menu
+if %setcommand% == 4 goto custommenu
+if %setcommand% == 5 goto customversion
+if %setcommand% == 6 goto customcheat
+if %setcommand% == 7 goto menu
+
+:custommenu
+cls
+echo What do you want the menu command to be?
+set /p op1=
 goto menu
+
+:customversion
+cls
+echo What do you want the version command to be?
+set /p op3=
+goto menu
+
+:customcheat
+cls
+echo What do you want the cheat command to be?
+set /p op5=
+goto menu
+
+:how
+cls
+echo ---------------------------------
+echo.
+echo The aim of Blackjack is to beat the dealer's hand without going over 21.
+echo Each player starts with two cards, one of the dealer's cards is hidden until the end.
+echo To 'Hit' is to ask for another card. To 'Stand' is to hold your total and end your turn.
+echo If you go over 21 you bust, and the dealer wins regardless of the dealer's hand.
+echo If you are dealt 21 from the start (Ace & 10), you got a blackjack.
+echo Blackjack usually means you win 1.5 the amount of your bet. Depends on the casino.
+echo Dealer will hit until his/her cards total 17 or higher.
+echo Doubling is like a hit, only the bet is doubled and you only get one more card.
+echo Split can be done when you have two of the same card - the pair is split into two hands.
+echo Splitting also doubles the bet, because each new hand is worth the original bet.
+echo You can only double/split on the first move, or first move of a hand created by a split.
+echo You cannot play on two aces after they are split.
+echo You can double on a hand resulting from a split, tripling or quadrupling you bet.
+echo.
+pause
+goto menu2
 
 :modes
 cls
-echo Choose a game mode:
-echo 1) Casual
-echo 2) Casino
-echo 3) -Info-
-set /p mode=
-if %mode% == 1 goto gsetup
-if %mode% == 2 goto csnsetup
-if %mode% == 3 goto info
-if %mode% == %op1% goto menu
+echo What game mode do you want to play?
+echo 1) Classic Blackjack
+echo 2) Casino Leagues
+echo 3) -Back-
+set /p gamemode=
+if %gamemode% == 1 goto classic
+if %gamemode% == 2 goto league
+if %gamemode% == 3 goto menu
 goto modes
 
-:info
+:classic
 cls
-echo Casual is a normal game of Blackjack, whereas Casino is a game involving bets, money, and stats.
+set lastgamemod=classic
+set /a stake = 50
+goto roundstart
+
+:league
+cls
+echo The leagues are locked and will be unlocked as you progress.
+echo Current league is based on your level.
 echo.
+echo Levels 1-2: Bronze
+echo Levels 3-4: Silver
+echo Levels 5-6: Gold
+echo Levels 7-8: Platinum
+echo Levels 9-10: Diamond
+echo.
+if %level% lss 1 goto bronze
+if %level% lss 3 goto bronze
+if %level% lss 5 goto silver
+if %level% lss 7 goto gold
+if %level% lss 9 goto platinum
+if %level% geq 9 goto diamond
+
+:bronze
+echo Current league is: BRONZE
+echo Stake: $100
+set /a stake = 100
 pause
-cls
-echo In Casual, money cannot be earned or lost. In Casino, it can be.
-echo.
+goto roundstart
+
+:silver
+echo Current league is: SILVER
+echo Stake: $250
+set /a stake = 250
 pause
+goto roundstart
+
+:gold
+echo Current league is: GOLD
+echo Stake: $500
+set /a stake = 500
+pause
+goto roundstart
+
+:platinum
+echo Current league is: PLATINUM
+echo Stake: $750
+set /a stake = 750
+pause
+goto roundstart
+
+:diamond
+echo Current league is: DIAMOND
+echo Stake: $1000
+set /a stake = 1000
+pause
+goto roundstart
+
+:roundstart
 cls
-echo When you win a game in Casino mode, you gain experience which is used to unlock new and more rewarding
-echo tournaments. However, losing a game will decrease your experience by half the usual gain.
-echo.
-goto modes
+set /a lastgame = 1
+set /a bet = 0
+if %stake% == 50 goto bet50
+if %stake% == 100 goto bet100
+if %stake% == 250 goto bet250
+if %stake% == 500 goto bet500
+if %stake% == 750 goto bet750
+if %stake% == 1000 goto bet1000
 
-		REM Casual game begins here. Core game functions from here on out.
+:bet50
+set /a bet = 50
+goto game
 
-		REM The lines below generate all five of the player and dealer's potential draws.
+:bet100
+set /a bet = 100
+goto game
 
-:gsetup
-set /a total = 0
-set /a dtotal = 0
-set /a playcard1 = %random% %% 11+1
-set /a playcard2 = %random% %% 11+1
-set /a playcheck = %playcard1% + %playcard2%
-if %playcheck% == 22 goto gsetup
-set /a playcard3 = %random% %% 11+1
-set /a playcard4 = %random% %% 11+1
-set /a playcard5 = %random% %% 11+1
-	:dealcards
-set /a dealcard1 = %random% %% 11+1
-set /a dealcard2 = %random% %% 11+1
-set /a dealcheck = %dealcard1% + %dealcard2%
-if %dealcheck% == 22 goto dealcards
-set /a dealcard3 = %random% %% 11+1
-set /a dealcard4 = %random% %% 11+1
-set /a dealcard5 = %random% %% 11+1
+:bet250
+set /a bet = 250
+goto game
 
-		REM Player's turn begins here.
+:bet500
+set /a bet = 500
+goto game
+
+:bet750
+set /a bet = 750
+goto game
+
+:bet1000
+set /a bet = 1000
+goto game
 
 :game
+set /a dtotal = 0
+set /a total = 0
 cls
-echo Your first card is %playcard1%.
-echo Your second card is %playcard2%.
+set /a gamesplayed = %gamesplayed% +1
+echo Dealing cards...
+ping localhost -n 2 > nul
 echo.
-echo Dealers up card is %dealcard1%
-set /a total = %playcard1% + %playcard2%
-if %total% == %blackjack% goto pblackjack
-echo Your total is %total%.
+echo Dealer's card:
+echo +-----+
+echo ^     ^
+echo ^     ^
+echo ^  *  ^
+echo ^     ^
+echo +-----+
+ping localhost -n 2 > nul
+echo.
+goto player1
+
+:player1
+set /a draw = %random% %% 10 + 1
+set /a total = %total% + %draw%
+goto player1output
+
+:player1output
+echo Your card is: %draw%
+echo.
+if %total% lss 21 goto player1choice
+if %total% equ 21 goto dealer
+if %total% gtr 21 goto playerbust
+
+:player1choice
+echo Total = %total%
 echo.
 echo 1) Hit
 echo 2) Stand
-set /p action=
-if %action% == 1 goto pcard3
-if %action% == 2 goto dcard
-if %action% == %op1% goto menu
-if %action% == %op2% goto start
-goto game
-	:pcard3
-set /a total = %total% + %playcard3%
-if %total% == 21 goto pblackjack
-if %total% GTR 21 goto playerbust
-cls
-echo You draw a %playcard3%.
-echo Your total is now %total%.
-echo.
-echo Dealers up card is %dealcard1%    
-echo.
-echo 1) Hit
-echo 2) Stand
-set /p action=
-if %action% == 1 goto pcard4
-if %action% == 2 goto dcard
-if %action% == %op1% goto menu
-goto game
-	:pcard4
-set /a total = %total% + %playcard4%
-if %total% == 21 goto pblackjack
-if %total% GTR 21 goto playerbust
-cls
-echo You draw a %playcard4%.
-echo Your total is now %total%.
-echo.
-echo Dealers up card is %dealcard1%   
-echo.
-echo 1) Hit
-echo 2) Stand
-set /p action=
-if %action% == 1 goto pcard5
-if %action% == 2 goto dcard
-if %action% == %op1% goto menu
-goto game
-	:pcard5
-set /a total = %total% + %playcard5%
-if %total% == 21 goto pblackjack
-if %total% GTR 21 goto playerbust
-cls
-echo You draw a %playcard3%.
-echo Your total is now %total%.
-echo.
-echo Dealers up card is %dealcard1%    
-echo.
-pause
-goto dcard
-
-		REM Dealer's turn begins here.
-
-:dcard
-cls
-echo The dealer will now draw.
-ping localhost -n 3 > nul
-cls
-set /a dtotal = %dealcard1% + %dealcard2%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-set /a dealnum = 2
-ping localhost -n 3 > nul
-if %dtotal% LSS 17 goto dcard3
-if %dtotal% GTR 16 goto dstop
-if %dtotal% == 21 goto dblackjack
-if %dtotal% GTR 21 goto dealerbust
-	:dcard3
-cls
-set /a dtotal = %dtotal% + %dealcard3%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-echo Third card: %dealcard3%
-set /a dealnum = 3
-ping localhost -n 3 > nul
-if %dtotal% LSS 17 goto dcard4
-if %dtotal% GTR 16 goto dstop
-if %dtotal% == 21 goto dblackjack
-if %dtotal% GTR 21 goto dealerbust
-	:dcard4
-cls
-set /a dtotal = %dtotal% + %dealcard4%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-echo Third card: %dealcard3%
-echo Fourth card: %dealcard4%
-set /a dealnum = 4
-ping localhost -n 3 > nul
-if %dtotal% LSS 17 goto dcard5
-if %dtotal% GTR 16 goto dstop
-if %dtotal% == 21 goto dblackjack
-if %dtotal% GTR 21 goto dealerbust
-	:dcard5
-cls
-set /a dtotal = %dtotal% + %dealcard5%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-echo Third card: %dealcard3%
-echo Fourth card: %dealcard4%
-echo Fifth card: %dealcard5%
-set /a dealnum = 5
-ping localhost -n 3 > nul
-if %dtotal% == 21 goto dblackjack
-if %dtotal% GTR 21 goto dealerbust
-goto dstop
-
-:dstop
-if %dtotal% == 21 goto dblackjack
-if %dtotal% GTR 21 goto dealerbust
-echo.
-echo Dealer stopped at %dtotal%
-echo.
-if %dtotal% == %total% echo Push. No winner. %total% - %dtotal%.
-if %dtotal% GTR %total% echo Dealer has higher score, %total% - %dtotal%.
-if %dtotal% GTR %total% echo Dealer wins.
-if %total% GTR %dtotal% echo Your score is higher, %total% - %dtotal%.
-if %total% GTR %dtotal% echo You win!
-echo.
-pause
-goto playagain
-
-:pblackjack
-cls
-echo %total% Blackjack! You win!
-echo.
-pause
-goto playagain
-
-:dblackjack
-echo.
-echo Dealer has blackjack. Dealer wins.
-echo.
-pause
-goto playagain
+echo 3) Double
+set /p choice=
+if %choice% == 1 goto player1
+if %choice% == 2 goto dealer
+if %choice% == 3 goto playerdouble
+goto player1choice
 
 :playerbust
 cls
-echo Bust! Your total is %total%. Dealer wins!
+echo You busted!
+set /a losses = %losses% + 1
+set /a cash = %cash% - %bet%
+set /a lostcash = %lostcash% + %bet%
+echo Total losses: %losses%
 echo.
+echo Cash = $%cash%
 pause
-goto playagain
+goto menu2
+
+:playerdouble
+set /a bet = %bet% * 2
+set /a draw = %random% %% 10 + 1
+set /a total = %total% + %draw%
+echo Your card is: %draw%
+if %total% lss 21 goto dealer
+if %total% equ 21 goto dealer
+if %total% gtr 21 goto playerbust
+
+:dealer
+cls
+set /a draw = %random% %% 10 + 1
+set /a dtotal = %dtotal% + %draw%
+echo Dealer's card is: %draw%
+if %dtotal% lss 17 goto dealer
+if %dtotal% equ 17 goto wincondition
+if %dtotal% gtr 17 goto wincondition
+
+:wincondition
+if %dtotal% equ 21 goto dealerblackjack
+if %dtotal% gtr 21 goto dealerbust
+if %dtotal% lss %total% goto playerwin
+if %dtotal% equ %total% goto tie
+if %dtotal% gtr %total% goto playerbust
 
 :dealerbust
-echo.
-echo Dealer has %dtotal%, dealer bust. You win!
-echo.
-pause
-goto playagain
-
-:playagain
 cls
-echo Play Again? (Y/N)
-set /p pa=
-if %pa% == y goto gsetup
-if %pa% == n goto menu
-goto playagain
-
-		REM Casino game begins here
-
-:csnsetup
-set /a total = 0
-set /a dtotal = 0
-set /a playcard1 = %random% %% 11+1
-set /a playcard2 = %random% %% 11+1
-set /a playcheck = %playcard1% + %playcard2%
-if %playcheck% == 22 goto csnsetup
-set /a playcard3 = %random% %% 11+1
-set /a playcard4 = %random% %% 11+1
-set /a playcard5 = %random% %% 11+1
-	:csndealcards
-set /a dealcard1 = %random% %% 11+1
-set /a dealcard2 = %random% %% 11+1
-set /a dealcheck = %dealcard1% + %dealcard2%
-if %dealcheck% == 22 goto csndealcards
-set /a dealcard3 = %random% %% 11+1
-set /a dealcard4 = %random% %% 11+1
-set /a dealcard5 = %random% %% 11+1
-
-:csnstake
-set /a expwin = 20
-set /a exploss = 10
-cls
-echo Cash: $%cash%
-echo.
-if %lastgamemod% == 1 echo Last game, you won $%lastgame% !
-if %lastgamemod% == 2 echo Last game, you lost $%lastgame%...
-if %lastgamemod% == 1 echo.
-if %lastgamemod% == 2 echo.
-if %session% lss 0 echo You are currently suffering a net loss of $%session% for this session...
-if %session% lss 0 echo.
-if %session% gtr 0 echo You are currently up by $%session% for this session !
-if %session% gtr 0 echo.
-echo Choose a Casino league.
-echo 1) No League
-if %level% gtr 9 echo 2) Bronze League
-if %level% lss 10 echo 2) (LOCKED) Bronze League
-if %level% gtr 24 echo 3) Silver League
-if %level% lss 25 echo 3) (LOCKED) Silver League
-if %level% gtr 39 echo 4) Gold League
-if %level% lss 40 echo 4) (LOCKED) Gold League
-if %level% gtr 44 echo 5) Diamond League
-if %level% lss 45 echo 5) (LOCKED) Diamond League
-echo 6)  -Info-
-set /p stake=
-if %stake% == 1 goto bet
-if %stake% == 2 goto bet2
-if %stake% == 3 goto bet3
-if %stake% == 4 goto bet4
-if %stake% == 5 goto bet5
-if %stake% == 6 goto betinfo
-if %stake% == %op1% goto menu
-
-:betinfo
-cls
-echo Leagueless games are free for anyone to attend regardless of level, and
-echo require bets between $10 - $1,000.
-echo Experience Gain: 20
-echo Experience Loss: 10
-echo.
-echo Bronze League requires Level 10 or higher, and bets between $1,000 - $50,000.
-echo Experience Gain: 50
-echo Experience Loss: 25
-echo.
-echo Silver League requires Level 25 or higher, and bets between $50,000 - $500,000.
-echo Experience Gain: 150
-echo Experience Loss: 75
-echo.
-echo Gold League requires Level 40 or higher, and bets between $500,000 - $20,000,000.
-echo Experience Gain: 400
-echo Experience Loss: 200
-echo.
-echo Diamond League requires Level 45 or higher, and bets between $20,000,000 - $1,000,000,000.
-echo Experience Gain: 800
-echo Experience Loss: 400
-echo.
-pause
-set stake=undef
-goto csnstake
-
-:bet
-set stake=low
-	:bet1con
-cls
-echo Cash = $%cash%
-echo Leagueless game
-echo.
-echo Enter your bet. Bet must be between $10 and $1,000.
-set /p bet=
-if %bet% == %op1% goto menu
-if %bet% LSS 10 echo Bet must be greater than $10.
-if %bet% LSS 10 pause
-if %bet% LSS 10 goto bet1con
-if %bet% GTR 1000 echo Bet must be less than $1,000.
-if %bet% GTR 1000 pause
-if %bet% GTR 1000 goto bet1con
-if %bet% GTR %cash% echo You can't afford this bet.
-if %bet% GTR %cash% pause
-if %bet% GTR %cash% goto bet1con
-if %bet% == 0 goto bet1con
-goto csngame
-
-:bet2
-set stake=mid
-cls
-if %level% gtr 9 goto bet2con
-if %level% lss 10 echo You are not a member of the Bronze League, you must be at least Level 10 to participate.
-pause
-goto csnstake
-	:bet2con
-set /a expwin = 50
-set /a exploss = 25
-cls
-echo Cash = $%cash%
-echo Bronze League
-echo.
-echo Enter your bet. Bet must be between $10,000 and $50,000.
-set /p bet=
-if %bet% == %op1% goto menu
-if %bet% LSS 10000 echo Bet must be greater than $10,000.
-if %bet% LSS 10000 pause
-if %bet% LSS 10000 goto bet2con
-if %bet% GTR 50000 echo Bet must be less than $50,000.
-if %bet% GTR 50000 pause
-if %bet% GTR 50000 goto bet2con
-if %bet% GTR %cash% echo You can't afford this bet.
-if %bet% GTR %cash% pause
-if %bet% GTR %cash% goto bet2con
-if %bet% == 0 goto bet2con
-goto csngame
-
-:bet3
-set stake=high
-cls
-if %level% gtr 24 goto bet3con
-if %level% lss 25 echo You are not a member of the Silver League, you must be at least Level 25 to participate.
-pause
-goto csnstake
-	:bet3con
-set /a expwin = 150
-set /a exploss = 75
-cls
-echo Cash = $%cash%
-echo Silver League
-echo.
-echo Enter your bet. Bet must be between $50,000 and $500,000.
-set /p bet=
-if %bet% == %op1% goto menu
-if %bet% LSS 50000 echo Bet must be greater than $50,000. 
-if %bet% LSS 50000 pause
-if %bet% LSS 50000 goto bet3con
-if %bet% GTR 500000 echo Bet must be less than $500,000.
-if %bet% GTR 500000 pause
-if %bet% GTR 500000 goto bet3con
-if %bet% GTR %cash% echo You can't afford this bet.
-if %bet% GTR %cash% pause
-if %bet% GTR %cash% goto bet3con
-if %bet% == 0 goto bet3con
-goto csngame
-
-:bet4
-set stake=VeryHigh
-cls
-if %level% gtr 39 goto bet4con
-if %level% lss 40 echo You are not a member of the Gold League, you must be at least Level 40 to participate.
-pause
-goto csnstake
-	:bet4con
-set /a expwin = 400
-set /a exploss = 300
-cls
-echo Cash = $%cash%
-echo.
-echo Enter your bet. Bet must be between $500,000 and $20,000,000.
-set /p bet=
-if %bet% == %op1% goto menu
-if %bet% LSS 500000 echo Bet must be greater than $500,000. 
-if %bet% LSS 500000 pause
-if %bet% LSS 500000 goto bet4con
-if %bet% GTR 20000000 echo Bet must be less than $20,000,000.
-if %bet% GTR 20000000 pause
-if %bet% GTR 20000000 goto bet4con
-if %bet% GTR %cash% echo You can't afford this bet.
-if %bet% GTR %cash% pause
-if %bet% GTR %cash% goto bet4con
-if %bet% == 0 goto bet4con
-goto csngame
-
-:bet5
-set stake=extreme
-cls
-if %level% gtr 44 goto bet5con
-if %level% lss 45 echo You are not a member of the Diamond League, you must be at least Level 45 to participate.
-pause
-goto csnstake
-	:bet5con
-set /a expwin = 800
-set /a exploss = 400
-cls
-echo Cash = $%cash%
-echo Diamond League
-echo.
-echo Enter your bet. Bet must be between $20,000,000 and $1,000,000,000.
-set /p bet=
-if %bet% == %op1% goto menu
-if %bet% LSS 20000000 echo Bet must be greater than $20,000,000.
-if %bet% LSS 20000000 pause
-if %bet% LSS 20000000 goto bet5con
-if %bet% GTR 1000000000 echo Bet must be less than $1,000,000,000.
-if %bet% GTR 1000000000 pause
-if %bet% GTR 1000000000 goto bet5con
-if %bet% GTR %cash% echo You can't afford this bet.
-if %bet% GTR %cash% pause
-if %bet% GTR %cash% goto bet5con
-if %bet% == 0 goto bet5con
-
-:csngame
-cls
-set /a newlevel = %level%
-set /a lastgame = 0
-set /a played = %played% + 1
-set /a payout = %bet%
-echo Your bet is %bet%.
-echo.
-echo Your first card is %playcard1%.
-echo Your second card is %playcard2%.
-echo.
-echo Dealers up card is %dealcard1%
-set /a total = %playcard1% + %playcard2%
-if %total% == %blackjack% goto csnpblackjack
-echo Your total is %total%.
-echo.
-echo 1) Hit
-echo 2) Stand
-set /p action=
-if %action% == 1 goto csnpcard3
-if %action% == 2 goto csndcard
-if %action% == %op1% goto menu
-if %action% == %op2% goto start
-goto csngame
-	:csnpcard3
-set /a total = %total% + %playcard3%
-if %total% == 21 goto csnpblackjack
-if %total% GTR 21 goto csnplayerbust
-cls
-echo You draw a %playcard3%.
-echo Your total is now %total%.
-echo.
-echo Dealers up card is %dealcard1%    
-echo.
-echo 1) Hit
-echo 2) Stand
-set /p action=
-if %action% == 1 goto csnpcard4
-if %action% == 2 goto csndcard
-if %action% == %op1% goto menu
-goto csngame
-	:csnpcard4
-set /a total = %total% + %playcard4%
-if %total% == 21 goto csnpblackjack
-if %total% GTR 21 goto csnplayerbust
-cls
-echo You draw a %playcard4%.
-echo Your total is now %total%.
-echo.
-echo Dealers up card is %dealcard1%    
-echo.
-echo 1) Hit
-echo 2) Stand
-set /p action=
-if %action% == 1 goto csnpcard5
-if %action% == 2 goto csndcard
-if %action% == %op1% goto menu
-goto csngame
-	:csnpcard5
-set /a total = %total% + %playcard5%
-if %total% == 21 goto csnpblackjack
-if %total% GTR 21 goto csnplayerbust
-cls
-echo You draw a %playcard3%.
-echo Your total is now %total%.
-echo.
-echo Dealers up card is %dealcard1%    
-echo.
-pause
-goto csndcard
-
-:csndcard
-cls
-echo The dealer will now draw.
-ping localhost -n 3 > nul
-cls
-set /a dtotal = %dealcard1% + %dealcard2%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-set /a dealnum = 2
-ping localhost -n 3 > nul
-if %dtotal% LSS 17 goto csndcard3
-if %dtotal% GTR 16 goto csndstop
-if %dtotal% == 21 goto csndblackjack
-if %dtotal% GTR 21 goto csndealerbust
-	:csndcard3
-cls
-set /a dtotal = %dtotal% + %dealcard3%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-echo Third card: %dealcard3%
-set /a dealnum = 3
-ping localhost -n 3 > nul
-if %dtotal% LSS 17 goto csndcard4
-if %dtotal% GTR 16 goto csndstop
-if %dtotal% == 21 goto csndblackjack
-if %dtotal% GTR 21 goto csndealerbust
-	:csndcard4
-cls
-set /a dtotal = %dtotal% + %dealcard4%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-echo Third card: %dealcard3%
-echo Fourth card: %dealcard4%
-set /a dealnum = 4
-ping localhost -n 3 > nul
-if %dtotal% LSS 17 goto csndcard5
-if %dtotal% GTR 16 goto csndstop
-if %dtotal% == 21 goto csndblackjack
-if %dtotal% GTR 21 goto csndealerbust
-	:csndcard5
-cls
-set /a dtotal = %dtotal% + %dealcard5%
-echo Dealer's Total: %dtotal%
-echo.
-echo First card: %dealcard1%
-echo Second card: %dealcard2%
-echo Third card: %dealcard3%
-echo Fourth card: %dealcard4%
-echo Fifth card: %dealcard5%
-set /a dealnum = 5
-ping localhost -n 3 > nul
-if %dtotal% == 21 goto csndblackjack
-if %dtotal% GTR 21 goto csndealerbust
-goto csndstop
-
-:csndstop
-if %dtotal% == 21 goto csndblackjack
-if %dtotal% GTR 21 goto csndealerbust
-echo.
-echo Dealer stopped at %dtotal%
-echo.
-if %dtotal% == %total% echo Push. No winner. %total% - %dtotal%.
-if %dtotal% GTR %total% echo Dealer has higher score, %total% - %dtotal%.
-if %dtotal% GTR %total% echo Dealer wins.
-if %dtotal% GTR %total% echo.
-if %dtotal% GTR %total% set /a cash = %cash% - %bet%
-if %dtotal% GTR %total% echo You lost $%bet%!
-if %dtotal% GTR %total% echo.
-if %dtotal% GTR %total% echo You've lost %exploss% experience!
-if %dtotal% GTR %total% set /a experience = %experience% - %exploss%
-if %dtotal% GTR %total% set /a losses = %losses% + 1
-if %dtotal% GTR %total% set /a lostcash = %lostcash% + %bet%
-if %dtotal% GTR %total% set /a lastgame = %lastgame% + %bet%
-if %dtotal% GTR %total% set /a lastgamemod = 2
-if %dtotal% GTR %total% set /a session = %session% - %bet%
-if %total% GTR %dtotal% echo Your score is higher, %total% - %dtotal%.
-if %total% GTR %dtotal% echo You win $%payout%
-if %total% GTR %dtotal% echo.
-if %total% GTR %dtotal% echo You've gained %expwin% experience!
-if %total% GTR %dtotal% set /a experience = %experience% + %expwin%
-if %total% GTR %dtotal% set /a cash = %cash% + %payout%
-if %total% GTR %dtotal% set /a wins = %wins% + 1
-if %total% GTR %dtotal% set /a earnedcash = %earnedcash% + %payout%
-if %total% GTR %dtotal% set /a lastgame = %lastgame% + %bet%
-if %total% GTR %dtotal% set /a lastgamemod = 1
-if %total% GTR %dtotal% set /a session = %session% + %bet%
-if %total% GTR %dtotal% echo.
-if %total% GTR %dtotal% echo You won $%payout%!
-if %cash% GTR %mostcash% set /a mostcash = %cash%
-echo.
-pause
-set /a gamesplayed = %gamesplayed% + 1
-goto csnplayagain
-
-:csnpblackjack
-cls
-echo %total% Blackjack! You win!
-echo.
-echo You won $%payout%!
-echo.
-echo You've gained %expwin% experience!
-echo Plus a bonus %expwin% for getting Blackjack!
-echo.
-set /a expbonus = %expwin% * 2
-set /a experience = %experience% + %expbonus%
-set /a cash = %cash% + %payout%
+echo The dealer busted!
 set /a wins = %wins% + 1
-set /a earnedcash = %earnedcash% + %payout%
-set /a lastgame = %lastgame% + %bet%
-set /a lastgamemod = 1
-set /a session = %session% + %bet%
-if %cash% GTR %mostcash% set /a mostcash = %cash%
+set /a cash = %cash% + %bet%
+set /a woncash = %woncash% + %bet%
+echo Total wins: %wins%
 echo.
+echo Cash = $%cash%
 pause
-set /a gamesplayed = %gamesplayed% + 1
-goto csnplayagain
+goto menu2
 
-:csndblackjack
-echo.
-echo Dealer has blackjack. Dealer wins.
-echo.
-set /a cash = %cash% - %bet%
-echo You lost $%bet%.
-echo.
-echo You've lost %exploss% experience!
-echo.
-set /a experience = %experience% - %exploss%
-set /a losses = %losses% +1
-set /a lostcash = %lostcash% + %bet%
-set /a lastgame = %lastgame% + %bet%
-set /a lastgamemod = 2
-set /a session = %session% - %bet%
-echo.
-pause
-set /a gamesplayed = %gamesplayed% + 1
-goto csnplayagain
-
-:csnplayerbust
+:dealerblackjack
 cls
-echo Bust! Your total is %total%. Dealer wins!
-echo.
+echo The dealer hit blackjack!
+set /a losses = %losses% + 1
 set /a cash = %cash% - %bet%
-echo You lost $%bet%.
-echo.
-echo You've lost %exploss% experience!
-echo.
-set /a experience = %experience% - %exploss%
-set /a losses = %losses% +1
 set /a lostcash = %lostcash% + %bet%
-set /a lastgame = %lastgame% + %bet%
-set /a lastgamemod = 2
-set /a session = %session% - %bet%
+echo Total losses: %losses%
 echo.
+echo Cash = $%cash%
 pause
-set /a gamesplayed = %gamesplayed% + 1
-goto csnplayagain
+goto menu2
 
-:csndealerbust
-echo.
-echo Dealer has %dtotal%, dealer bust. You win!
-echo.
-set /a cash = %cash% + %payout%
-echo You won $%payout%!
-echo.
-echo You've gained %expwin% experience!
-echo.
-set /a experience = %experience% + %expwin%
+:playerwin
+cls
+echo You win!
 set /a wins = %wins% + 1
-set /a earnedcash = %earnedcash% + %payout%
-if %cash% GTR %mostcash% set /a mostcash = %cash%
-set /a lastgame = %lastgame% + %bet%
-set /a lastgamemod = 1
-set /a session = %session% + %bet%
+set /a cash = %cash% + %bet%
+set /a woncash = %woncash% + %bet%
+echo Total wins: %wins%
 echo.
+echo Cash = $%cash%
 pause
-set /a gamesplayed = %gamesplayed% + 1
-goto csnplayagain
+goto menu2
 
-:csnplayagain
-goto expgainer
-	:csnplayagain2
+:tie
 cls
-echo Play Again? (Y/N)
-set /p pa=
-if %pa% == y goto csnsetup
-if %pa% == n goto menu
-goto csnplayagain2
-
-		REM The lines below will gather the player's total experience, and adjust player level as needed.
-
-:expgainer
-if %experience% gtr 68926 set /a newlevel = 50
-if %experience% lss 68927 set /a newlevel = 49
-if %experience% lss 62586 set /a newlevel = 48
-if %experience% lss 56822 set /a newlevel = 47
-if %experience% lss 51582 set /a newlevel = 46
-if %experience% lss 46819 set /a newlevel = 45
-if %experience% lss 42489 set /a newlevel = 44
-if %experience% lss 38553 set /a newlevel = 43
-if %experience% lss 34975 set /a newlevel = 42
-if %experience% lss 31723 set /a newlevel = 41
-if %experience% lss 28767 set /a newlevel = 40
-if %experience% lss 26080 set /a newlevel = 39
-if %experience% lss 23638 set /a newlevel = 38
-if %experience% lss 21418 set /a newlevel = 37
-if %experience% lss 19400 set /a newlevel = 36
-if %experience% lss 17566 set /a newlevel = 35
-if %experience% lss 15899 set /a newlevel = 34
-if %experience% lss 14384 set /a newlevel = 33
-if %experience% lss 13007 set /a newlevel = 32
-if %experience% lss 11756 set /a newlevel = 31
-if %experience% lss 10619 set /a newlevel = 30
-if %experience% lss 9586 set /a newlevel = 29
-if %experience% lss 8647 set /a newlevel = 28
-if %experience% lss 7794 set /a newlevel = 27
-if %experience% lss 7019 set /a newlevel = 26
-if %experience% lss 6315 set /a newlevel = 25
-if %experience% lss 5675 set /a newlevel = 24
-if %experience% lss 5094 set /a newlevel = 23
-if %experience% lss 4566 set /a newlevel = 22
-if %experience% lss 4086 set /a newlevel = 21
-if %experience% lss 3650 set /a newlevel = 20
-if %experience% lss 3254 set /a newlevel = 19
-if %experience% lss 2894 set /a newlevel = 18
-if %experience% lss 2567 set /a newlevel = 17
-if %experience% lss 2270 set /a newlevel = 16
-if %experience% lss 2000 set /a newlevel = 15
-if %experience% lss 1755 set /a newlevel = 14
-if %experience% lss 1533 set /a newlevel = 13
-if %experience% lss 1332 set /a newlevel = 12
-if %experience% lss 1150 set /a newlevel = 11
-if %experience% lss 985 set /a newlevel = 10
-if %experience% lss 835 set /a newlevel = 9
-if %experience% lss 699 set /a newlevel = 8
-if %experience% lss 586 set /a newlevel = 7
-if %experience% lss 484 set /a newlevel = 6
-if %experience% lss 392 set /a newlevel = 5
-if %experience% lss 309 set /a newlevel = 4
-if %experience% lss 234 set /a newlevel = 3
-if %experience% lss 166 set /a newlevel = 2
-if %experience% lss 105 set /a newlevel = 1
-if %experience% lss 50 set /a newlevel = 0
-if %experience% lss 0 set /a experience = 0
-if %newlevel% neq %level% goto levelchange
-goto csnplayagain2
-
-:levelchange
-cls
-echo Your level has changed! %level% --) %newlevel%
-echo.
+echo It's a tie!
 pause
-set /a level = %newlevel%
-goto csnplayagain2
-
-:exit
-echo.
-echo Thank you for playing! =)
-echo.
-ping localhost -n 3 > nul
-
-:exit2
+goto menu2
